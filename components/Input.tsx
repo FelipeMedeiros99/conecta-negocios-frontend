@@ -9,7 +9,7 @@ export default function Input({ label, ...props }: InputProps) {
   const id = useId()
 
   return (
-    <div>
+    <div className="w-full">
       {label &&
         <label
           htmlFor={id}
