@@ -46,7 +46,6 @@ function createApiClient() {
         if (error.response?.status === 401) {
           console.error('Erro 401: Token inválido ou expirado.');
           removeAuthToken(); 
-          window.location.href = '/login';
         }
       }
       return Promise.reject(error);
