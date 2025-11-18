@@ -10,7 +10,7 @@ export default function Home() {
       router.push("/home")
       return
     }
-    router.push("login")
+    router.push("/login")
   }, [])
   return (
     <div></div>
