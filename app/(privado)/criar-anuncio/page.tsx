@@ -39,10 +39,6 @@ export default function CriarAnuncio() {
   const [success, setSuccess] = useState<string | null>(null);
 
 
-  console.log(anuncioData)
-  console.log(categorias)
-
-
   useEffect(() => {
     async function fetchCategorias() {
       try {
@@ -99,7 +95,7 @@ export default function CriarAnuncio() {
           formData.append('imagens', image);
         });
 
-        await api.post(`/anuncio/${newAnuncioId}/upload-imagens`, formData, {
+        const response = await api.post(`/anuncio/${newAnuncioId}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -109,15 +105,11 @@ export default function CriarAnuncio() {
       setIsLoading(false);
       setSuccess('Anúncio publicado com sucesso!');
 
-      // setTitulo('');
-      // setDescricao('');
-      // setPreco('');
       setAnuncioData(defaultAnuncioData)
       setImages([]);
       setImagePreviews([]);
 
       setTimeout(() => {
-        // (idealmente, redirecionar para a página do anúncio)
         router.push('/home');
       }, 1500);
 
@@ -126,7 +118,6 @@ export default function CriarAnuncio() {
       setIsLoading(false);
       const message = (err as AxiosError<any>)?.response?.data?.message || 'Erro desconhecido.';
 
-      // Tenta apagar o anúncio se as imagens falharem? (Lógica futura)
       if (newAnuncioId) {
         setError(`Anúncio de texto criado, mas falha ao enviar imagens: ${message}`);
       } else {
