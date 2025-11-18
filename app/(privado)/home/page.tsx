@@ -3,6 +3,7 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 import Link from 'next/link';
 import { api } from '@/services/api';
+import axios from 'axios';
 
 interface ImagemAnuncio {
   id: number;
@@ -30,6 +31,16 @@ interface Anuncio {
   usuario: Usuario;
 }
 
+interface Estado {
+  id: number;
+  sigla: string;
+  nome: string;
+}
+
+interface Cidade{
+  id: number;
+  nome: string
+}
 
 export default function AnunciosPage() {
 
@@ -37,12 +48,13 @@ export default function AnunciosPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [estados, setEstados] = useState<Estado[]>([])
+  const [cidades, setCidades] = useState<Cidade[]>([])
+
   const [busca, setBusca] = useState('');
   const [filtroCidade, setFiltroCidade] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
-  
-  console.log(anuncios)
-  
+
   const fetchAnuncios = async () => {
     setIsLoading(true);
     setError(null);
@@ -63,11 +75,40 @@ export default function AnunciosPage() {
     }
   };
 
+  const fetchEstados = async () => {
+    try {
+      const response = await axios.get("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome")
+      setEstados(response.data)
+    } catch (e) {
+      console.log(e)
+      setError("Erro ao buscar estados")
+    }
+
+  }
+
+  const fetchMunicipio = async () =>{
+    try {
+      const estadoSelecionado = estados.find((estado)=> estado.nome === filtroEstado)
+
+      const response = await axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado?.sigla}/distritos?orderBy=nome`)
+      setCidades(response.data)
+    } catch (e) {
+      console.log(e)
+      setError("Erro ao buscar estados")
+    }
+  }
+
   useEffect(() => {
-    (async ()=>{
-      await fetchAnuncios();
+    (async () => {
+      await Promise.all([fetchEstados(), fetchAnuncios()])
     })()
   }, []);
+
+  useEffect(()=>{
+    (async()=>{
+      await fetchMunicipio()
+    })()
+  }, [filtroEstado])
 
   const handleFiltrar = (e: FormEvent) => {
     e.preventDefault();
@@ -78,15 +119,15 @@ export default function AnunciosPage() {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    }).format(Number(value)); 
+    }).format(Number(value));
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
-        
+
         <div className="bg-white p-4 rounded-lg shadow-sm mb-8">
-          <form onSubmit={handleFiltrar} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <form onSubmit={handleFiltrar} className="grid grid-cols-1 md:grid-cols-5 gap-4">
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">O que você procura?</label>
@@ -100,41 +141,66 @@ export default function AnunciosPage() {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+              <select 
+                name="Estado" 
+                id="Estado" 
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}
+                >
+                <option value="" disabled>Selecione</option>
+                {estados && 
+                estados.map((estado)=>(
+                  <option value={estado.nome}>{estado.nome}</option>
+                ))
+                }
+              </select>
+              {/* <input
+                type="text"
+                placeholder="Estado"
+                value={filtroEstado}
+                onChange={(e) => setFiltroEstado(e.target.value.toUpperCase())}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              /> */}
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
-              <input
+              <select 
+                name="Cidade" 
+                id="Cidade" 
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                value={filtroCidade} onChange={(e) => setFiltroCidade(e.target.value)}
+                >
+                <option value="" disabled>Selecione</option>
+                {cidades && 
+                cidades.map((cidade)=>(
+                  <option value={cidade.nome}>{cidade.nome}</option>
+                ))
+                }
+              </select>
+              {/* <input
                 type="text"
                 placeholder="Ex: São Luís"
                 value={filtroCidade}
                 onChange={(e) => setFiltroCidade(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              />
+              /> */}
             </div>
 
-            <div className="flex gap-2">
-              <div className="w-24">
-                <label className="block text-sm font-medium text-gray-700 mb-1">UF</label>
-                <input
-                  type="text"
-                  placeholder="UF"
-                  maxLength={2}
-                  value={filtroEstado}
-                  onChange={(e) => setFiltroEstado(e.target.value.toUpperCase())}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-center"
-                />
+            <div className='flex items-end'>
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition h-10"
+              >
+              Buscar
+            </button>
               </div>
-              <div className="flex-1 flex items-end">
-                <button
-                  type="submit"
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition"
-                >
-                  Buscar
-                </button>
-              </div>
-            </div>
+
           </form>
         </div>
 
-        
+
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((i) => (
@@ -163,7 +229,7 @@ export default function AnunciosPage() {
             {anuncios.map((anuncio) => (
               <Link href={`/anuncio/${anuncio.id}`} key={anuncio.id} className="group">
                 <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition duration-300 overflow-hidden h-full flex flex-col">
-                  
+
                   <div className="relative h-48 bg-gray-200 overflow-hidden">
                     {anuncio.imagens && anuncio.imagens.length > 0 ? (
                       <img
@@ -179,7 +245,7 @@ export default function AnunciosPage() {
                         <span className="text-sm">Sem imagem</span>
                       </div>
                     )}
-                    
+
                     <span className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
                       {anuncio.categoria.nome}
                     </span>
@@ -189,7 +255,7 @@ export default function AnunciosPage() {
                     <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 mb-1 group-hover:text-indigo-600 transition">
                       {anuncio.titulo}
                     </h3>
-                    
+
                     <p className="text-2xl font-bold text-gray-900 mb-2">
                       {formatMoney(anuncio.preco)}
                     </p>
