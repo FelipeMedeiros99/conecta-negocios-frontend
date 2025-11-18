@@ -1,0 +1,228 @@
+"use client"
+
+import React, { useState, useEffect, FormEvent } from 'react';
+import Link from 'next/link';
+import { api } from '@/services/api';
+
+interface ImagemAnuncio {
+  id: number;
+  url: string;
+}
+
+interface Usuario {
+  nome: string;
+  cidade: string;
+  estado: string;
+}
+
+interface Categoria {
+  nome: string;
+}
+
+interface Anuncio {
+  id: number;
+  titulo: string;
+  descricao: string;
+  preco: number;
+  categoria: Categoria;
+  createdAt: string;
+  imagens: ImagemAnuncio[];
+  usuario: Usuario;
+}
+
+
+export default function AnunciosPage() {
+
+  const [anuncios, setAnuncios] = useState<Anuncio[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [busca, setBusca] = useState('');
+  const [filtroCidade, setFiltroCidade] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('');
+  
+  console.log(anuncios)
+  
+  const fetchAnuncios = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const params = {
+        q: busca || undefined,
+        cidade: filtroCidade || undefined,
+        estado: filtroEstado || undefined,
+      };
+
+      const response = await api.get('/anuncio', { params });
+      setAnuncios(response.data);
+    } catch (err) {
+      console.error('Erro ao buscar anúncios:', err);
+      setError('Falha ao carregar os anúncios. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    (async ()=>{
+      await fetchAnuncios();
+    })()
+  }, []);
+
+  const handleFiltrar = (e: FormEvent) => {
+    e.preventDefault();
+    fetchAnuncios();
+  };
+
+  const formatMoney = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(Number(value)); 
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-indigo-600 text-white shadow-md">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold">ConectaNegócios</h1>
+          <Link href="/criar-anuncio" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md font-semibold transition">
+            Anunciar Agora
+          </Link>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-8">
+        
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-8">
+          <form onSubmit={handleFiltrar} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">O que você procura?</label>
+              <input
+                type="text"
+                placeholder="Ex: Encanador, iPhone, Bolo..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+              <input
+                type="text"
+                placeholder="Ex: São Luís"
+                value={filtroCidade}
+                onChange={(e) => setFiltroCidade(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <div className="w-24">
+                <label className="block text-sm font-medium text-gray-700 mb-1">UF</label>
+                <input
+                  type="text"
+                  placeholder="UF"
+                  maxLength={2}
+                  value={filtroEstado}
+                  onChange={(e) => setFiltroEstado(e.target.value.toUpperCase())}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-center"
+                />
+              </div>
+              <div className="flex-1 flex items-end">
+                <button
+                  type="submit"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition"
+                >
+                  Buscar
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-lg shadow-md h-80 animate-pulse">
+                <div className="h-48 bg-gray-200 rounded-t-lg"></div>
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-10 text-red-600 bg-red-50 rounded-lg border border-red-200">
+            <p>{error}</p>
+            <button onClick={fetchAnuncios} className="mt-2 text-indigo-600 underline">Tentar novamente</button>
+          </div>
+        ) : anuncios.length === 0 ? (
+          <div className="text-center py-16 text-gray-500">
+            <p className="text-xl">Nenhum anúncio encontrado 😕</p>
+            <p className="text-sm mt-2">Tente mudar os filtros ou a localização.</p>
+          </div>
+        ) : (
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {anuncios.map((anuncio) => (
+              <Link href={`/anuncio/${anuncio.id}`} key={anuncio.id} className="group">
+                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition duration-300 overflow-hidden h-full flex flex-col">
+                  
+                  <div className="relative h-48 bg-gray-200 overflow-hidden">
+                    {anuncio.imagens && anuncio.imagens.length > 0 ? (
+                      <img
+                        src={process.env.NEXT_PUBLIC_API_URL + "/uploads/" + anuncio.imagens[0].url}
+                        alt={anuncio.titulo}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Sem+Imagem';
+                        }}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-400">
+                        <span className="text-sm">Sem imagem</span>
+                      </div>
+                    )}
+                    
+                    <span className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                      {anuncio.categoria.nome}
+                    </span>
+                  </div>
+
+                  <div className="p-4 flex flex-col flex-1">
+                    <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 mb-1 group-hover:text-indigo-600 transition">
+                      {anuncio.titulo}
+                    </h3>
+                    
+                    <p className="text-2xl font-bold text-gray-900 mb-2">
+                      {formatMoney(anuncio.preco)}
+                    </p>
+
+                    <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-1">
+                      {anuncio.descricao}
+                    </p>
+
+                    <div className="pt-3 border-t border-gray-100 flex justify-between items-end text-xs text-gray-400">
+                      <div className="flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        {anuncio.usuario.cidade} - {anuncio.usuario.estado}
+                      </div>
+                      <span>
+                        {new Date(anuncio.createdAt).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
