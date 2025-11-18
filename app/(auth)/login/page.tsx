@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { api, setAuthToken } from '@/services/api';
+import { api, removeAuthToken, setAuthToken } from '@/services/api';
 import { AxiosError } from 'axios';
 import Input from '@/components/Input';
 
@@ -19,7 +19,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -34,7 +33,7 @@ export default function LoginPage() {
 
       api.defaults.headers['Authorization'] = `Bearer ${access_token}`;
 
-      router.push('/dashboard');
+      router.push('/home');
 
     } catch (err) {
       const axiosError = err as AxiosError<ApiErrorResponse>;
@@ -51,6 +50,10 @@ export default function LoginPage() {
       return copy;
     })
   }
+
+  useEffect(()=>{
+    removeAuthToken();
+  }, [])
 
   return (
     <>
