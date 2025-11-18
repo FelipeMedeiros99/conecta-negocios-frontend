@@ -83,15 +83,6 @@ export default function AnunciosPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-indigo-600 text-white shadow-md">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">ConectaNegócios</h1>
-          <Link href="/criar-anuncio" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md font-semibold transition">
-            Anunciar Agora
-          </Link>
-        </div>
-      </header>
-
       <div className="container mx-auto px-4 py-8">
         
         <div className="bg-white p-4 rounded-lg shadow-sm mb-8">
