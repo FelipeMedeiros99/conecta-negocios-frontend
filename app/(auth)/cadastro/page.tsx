@@ -16,13 +16,14 @@ interface ViaCepResponse {
   logradouro: string;
   complemento: string;
   bairro: string;
-  localidade: string; 
-  estado: string;        
+  localidade: string;
+  estado: string;
   erro?: boolean;
 }
 
 interface UserData {
   nome: string;
+  telefone: string;
   username: string;
   senha: string;
   confirmarSenha: string;
@@ -38,8 +39,8 @@ export interface EnderecoData {
   estado: string;
 }
 
-const userDataDefault = { nome: "", senha: "", confirmarSenha: "", username: "" };
-const enderecoDataDefault = {cep: "", logradouro: "", numero: "", complemento: "", bairro: "",cidade: "",estado: ""}
+const userDataDefault = { nome: "", senha: "", confirmarSenha: "", username: "", telefone: "" };
+const enderecoDataDefault = { cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "" }
 
 export default function CadastroPage() {
   const router = useRouter();
@@ -71,11 +72,8 @@ export default function CadastroPage() {
         setCepError('CEP não encontrado.');
         setEnderecoData(enderecoDataDefault)
       } else {
-        const {logradouro, bairro, localidade, estado} = data;
-        console.log(data)
-        setEnderecoData(prev=>({...prev, logradouro, bairro, cidade: localidade, estado}))
-
-
+        const { logradouro, bairro, localidade, estado } = data;
+        setEnderecoData(prev => ({ ...prev, logradouro, bairro, cidade: localidade, estado }))
         document.getElementById('numero')?.focus();
       }
     } catch (err) {
@@ -85,10 +83,37 @@ export default function CadastroPage() {
     }
   };
 
+  const handleTelefone = (value: string) => {
+    value = value.replace(/\D/g, "");
+    value = value.substring(0,11)
+    if (value.length === 0) {
+      value = ""
+    }
+    if (value.length > 2) {
+      value = value.replace(/^(\d{2})/, '($1) ');
+    }
+  
+    if (value.length > 8) {
+      value = value.replace(/^(\(\d{2}\)) (\d)/, '$1 $2 ');
+    }
+    if (value.length > 13) {
+      value = value.replace(/^(\(\d{2}\) \d \d{4})/, '$1-');
+    }
+
+    setUserData(prev => ({ ...prev, "telefone": value }))
+  }
+
   const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    const telefone = userData.telefone.replaceAll(/\D/g, "");
+    if(telefone.length !== 11){
+      setError("O número precisa possuir 11 dígitos: DDD + 9 + número")
+      setIsLoading(false)
+      return
+    }
 
     if (userData.senha !== userData.confirmarSenha) {
       setError('As senhas não coincidem.');
@@ -97,7 +122,7 @@ export default function CadastroPage() {
     }
 
     try {
-      await api.post('/cadastrar', {...userData, ...enderecoData});
+      await api.post('/cadastrar', { ...userData, telefone, ...enderecoData });
       alert('Cadastro realizado com sucesso! Você será redirecionado para a página de login.');
       router.push('/login');
 
@@ -132,32 +157,38 @@ export default function CadastroPage() {
             placeholder="Nome Completo"
             required
             value={userData.nome}
-            onChange={(e) => setUserData(prev=>({...prev, "nome": e.target.value}))}
+            onChange={(e) => setUserData(prev => ({ ...prev, "nome": e.target.value }))}
+          />
+          <Input
+            type="text"
+            placeholder="Nome de usuário (ex: seu.nome)"
+            required
+            value={userData.username}
+            onChange={(e) => setUserData(prev => ({ ...prev, "username": e.target.value }))}
           />
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Input
-              type="text"
-              placeholder="Nome de usuário (ex: seu.nome)"
-              required
-              value={userData.username}
-              onChange={(e) => setUserData(prev=>({...prev, "username": e.target.value}))}
-            />
-            <Input
-              type="password"
-              placeholder="Senha (mín. 6 caracteres)"
-              required
-              minLength={6}
-              value={userData.senha}
-              onChange={(e) => setUserData(prev=>({...prev, "senha": e.target.value}))}
-            />
-          </div>
+          <Input
+            type="text"
+            placeholder="Telefone"
+            required
+            value={userData.telefone}
+            onChange={(e) => handleTelefone(e.target.value)}
+          />
+
+          <Input
+            type="password"
+            placeholder="Senha (mín. 6 caracteres)"
+            required
+            minLength={6}
+            value={userData.senha}
+            onChange={(e) => setUserData(prev => ({ ...prev, "senha": e.target.value }))}
+          />
           <Input
             type="password"
             placeholder="Confirme sua senha"
             required
             value={userData.confirmarSenha}
-            onChange={(e) => setUserData(prev=>({...prev, "confirmarSenha": e.target.value}))}
+            onChange={(e) => setUserData(prev => ({ ...prev, "confirmarSenha": e.target.value }))}
           />
         </fieldset>
 
@@ -173,7 +204,7 @@ export default function CadastroPage() {
                 placeholder="CEP (apenas números)"
                 required
                 value={enderecoData.cep}
-                onChange={(e) => setEnderecoData(prev=>({...prev, "cep": e.target.value}))}
+                onChange={(e) => setEnderecoData(prev => ({ ...prev, "cep": e.target.value }))}
                 onBlur={handleCepBlur} // <-- A mágica acontece aqui
                 maxLength={8}
               />
@@ -192,8 +223,8 @@ export default function CadastroPage() {
               placeholder="Logradouro (Rua, Av.)"
               required
               value={enderecoData.logradouro}
-              onChange={(e) => setEnderecoData(prev=>({...prev, "logradouro": e.target.value}))}
-              readOnly // Preenchido automaticamente
+              onChange={(e) => setEnderecoData(prev => ({ ...prev, "logradouro": e.target.value }))}
+              readOnly
             />
             <Input
               id="numero"
@@ -201,7 +232,7 @@ export default function CadastroPage() {
               placeholder="Número"
               required
               value={enderecoData.numero}
-              onChange={(e) => setEnderecoData(prev=>({...prev, "numero": e.target.value}))}
+              onChange={(e) => setEnderecoData(prev => ({ ...prev, "numero": e.target.value }))}
             />
           </div>
 
@@ -210,15 +241,15 @@ export default function CadastroPage() {
               type="text"
               placeholder="Complemento (Opcional)"
               value={enderecoData.complemento}
-              onChange={(e) => setEnderecoData(prev=>({...prev, "complemento": e.target.value}))}
+              onChange={(e) => setEnderecoData(prev => ({ ...prev, "complemento": e.target.value }))}
             />
             <Input
               type="text"
               placeholder="Bairro"
               required
               value={enderecoData.bairro}
-              onChange={(e) => setEnderecoData(prev=>({...prev, "bairro": e.target.value}))}
-              readOnly // Preenchido automaticamente
+              onChange={(e) => setEnderecoData(prev => ({ ...prev, "bairro": e.target.value }))}
+              readOnly 
             />
           </div>
 
@@ -228,16 +259,16 @@ export default function CadastroPage() {
               placeholder="Cidade"
               required
               value={enderecoData.cidade}
-              onChange={(e) => setEnderecoData(prev=>({...prev, "cidade": e.target.value}))}
-              readOnly // Preenchido automaticamente
+              onChange={(e) => setEnderecoData(prev => ({ ...prev, "cidade": e.target.value }))}
+              readOnly
             />
             <Input
               type="text"
               placeholder="Estado (UF)"
               required
               value={enderecoData.estado}
-              onChange={(e) => setEnderecoData(prev=>({...prev, "estado": e.target.value}))}
-              readOnly // Preenchido automaticamente
+              onChange={(e) => setEnderecoData(prev => ({ ...prev, "estado": e.target.value }))}
+              readOnly
             />
           </div>
         </fieldset>
