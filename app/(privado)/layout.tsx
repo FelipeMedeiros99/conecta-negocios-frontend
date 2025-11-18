@@ -1,5 +1,6 @@
 import React from "react";
 import Navbar from "@/components/Navbar";
+import AuthGuard from "@/components/AuthGuard";
 
 export default function RootLayout({
   children,
@@ -8,11 +9,10 @@ export default function RootLayout({
 }>) {
   return (
     <React.Fragment>
-      <Navbar />
-
-      {children}
+      <AuthGuard>
+        <Navbar />
+        {children}
+      </AuthGuard>
     </React.Fragment>
-
-
   );
 }
