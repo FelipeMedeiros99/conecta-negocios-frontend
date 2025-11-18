@@ -37,7 +37,7 @@ interface Estado {
   nome: string;
 }
 
-interface Cidade{
+interface Cidade {
   id: number;
   nome: string
 }
@@ -86,9 +86,9 @@ export default function AnunciosPage() {
 
   }
 
-  const fetchMunicipio = async () =>{
+  const fetchMunicipio = async () => {
     try {
-      const estadoSelecionado = estados.find((estado)=> estado.nome === filtroEstado)
+      const estadoSelecionado = estados.find((estado) => estado.nome === filtroEstado)
 
       const response = await axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado?.sigla}/distritos?orderBy=nome`)
       setCidades(response.data)
@@ -104,8 +104,8 @@ export default function AnunciosPage() {
     })()
   }, []);
 
-  useEffect(()=>{
-    (async()=>{
+  useEffect(() => {
+    (async () => {
       await fetchMunicipio()
     })()
   }, [filtroEstado])
@@ -122,12 +122,18 @@ export default function AnunciosPage() {
     }).format(Number(value));
   };
 
+  const clearFiltros = () => {
+    setFiltroEstado("")
+    setFiltroCidade("")
+    setBusca("")
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
 
         <div className="bg-white p-4 rounded-lg shadow-sm mb-8">
-          <form onSubmit={handleFiltrar} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <form onSubmit={handleFiltrar} className="grid grid-cols-1 lg:flex gap-4">
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">O que você procura?</label>
@@ -142,17 +148,17 @@ export default function AnunciosPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-              <select 
-                name="Estado" 
-                id="Estado" 
+              <select
+                name="Estado"
+                id="Estado"
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}
-                >
+              >
                 <option value="" disabled>Selecione</option>
-                {estados && 
-                estados.map((estado)=>(
-                  <option value={estado.nome}>{estado.nome}</option>
-                ))
+                {estados &&
+                  estados.map((estado) => (
+                    <option value={estado.nome}>{estado.nome}</option>
+                  ))
                 }
               </select>
               {/* <input
@@ -166,17 +172,17 @@ export default function AnunciosPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
-              <select 
-                name="Cidade" 
-                id="Cidade" 
+              <select
+                name="Cidade"
+                id="Cidade"
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 value={filtroCidade} onChange={(e) => setFiltroCidade(e.target.value)}
-                >
+              >
                 <option value="" disabled>Selecione</option>
-                {cidades && 
-                cidades.map((cidade)=>(
-                  <option value={cidade.nome}>{cidade.nome}</option>
-                ))
+                {cidades &&
+                  cidades.map((cidade) => (
+                    <option value={cidade.nome}>{cidade.nome}</option>
+                  ))
                 }
               </select>
               {/* <input
@@ -189,13 +195,23 @@ export default function AnunciosPage() {
             </div>
 
             <div className='flex items-end'>
-            <button
-              type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition h-10"
+              <button
+                type="submit"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition h-10"
               >
-              Buscar
-            </button>
-              </div>
+                Buscar
+              </button>
+            </div>
+
+            <div className='flex items-end'>
+              <button
+                // type="button"
+                onClick={clearFiltros}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition h-10"
+              >
+                Limpar
+              </button>
+            </div>
 
           </form>
         </div>
