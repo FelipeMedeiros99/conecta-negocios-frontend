@@ -1,0 +1,7 @@
+services:
+  conecta-negocios-frontend:
+    image: conecta-negocios-frontend
+    container_name: conecta-negocios-frontend
+    ports:
+      - "3003:3000"
+    build: .

@@ -143,6 +143,7 @@ export default function AnunciosPage() {
     setFiltroEstado("")
     setFiltroCidade("")
     setBusca("")
+    setFiltroCat("")
   }
 
   return (
