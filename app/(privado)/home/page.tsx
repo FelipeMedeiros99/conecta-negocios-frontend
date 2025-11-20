@@ -17,6 +17,11 @@ interface Usuario {
 }
 
 interface Categoria {
+  id: number,
+  nome: string,
+}
+
+interface Categoria {
   nome: string;
 }
 
@@ -45,6 +50,7 @@ interface Cidade {
 export default function AnunciosPage() {
 
   const [anuncios, setAnuncios] = useState<Anuncio[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([])
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,12 +60,14 @@ export default function AnunciosPage() {
   const [busca, setBusca] = useState('');
   const [filtroCidade, setFiltroCidade] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
+  const [filtroCat, setFiltroCat] = useState("")
 
   const fetchAnuncios = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const params = {
+        catId: filtroCat,
         q: busca || undefined,
         cidade: filtroCidade || undefined,
         estado: filtroEstado || undefined,
@@ -83,7 +91,16 @@ export default function AnunciosPage() {
       console.log(e)
       setError("Erro ao buscar estados")
     }
+  }
 
+  const fetchCategorias = async () => {
+    try {
+      const response = await api.get("/categoria")
+      setCategorias(response.data)
+    } catch (e) {
+      console.log(e)
+      setError("Erro ao buscar categorias")
+    }
   }
 
   const fetchMunicipio = async () => {
@@ -100,7 +117,7 @@ export default function AnunciosPage() {
 
   useEffect(() => {
     (async () => {
-      await Promise.all([fetchEstados(), fetchAnuncios()])
+      await Promise.all([fetchEstados(), fetchAnuncios(), fetchCategorias()])
     })()
   }, []);
 
@@ -147,6 +164,23 @@ export default function AnunciosPage() {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+              <select
+                name="Categoria"
+                id="Categoria"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                value={filtroCat} onChange={(e) => setFiltroCat(e.target.value)}
+              >
+                <option value="" disabled>Selecione</option>
+                {estados &&
+                  categorias.map((categoria) => (
+                    <option value={categoria.id}>{categoria.nome}</option>
+                  ))
+                }
+              </select>
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
               <select
                 name="Estado"
@@ -161,13 +195,6 @@ export default function AnunciosPage() {
                   ))
                 }
               </select>
-              {/* <input
-                type="text"
-                placeholder="Estado"
-                value={filtroEstado}
-                onChange={(e) => setFiltroEstado(e.target.value.toUpperCase())}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              /> */}
             </div>
 
             <div>
@@ -185,13 +212,6 @@ export default function AnunciosPage() {
                   ))
                 }
               </select>
-              {/* <input
-                type="text"
-                placeholder="Ex: São Luís"
-                value={filtroCidade}
-                onChange={(e) => setFiltroCidade(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              /> */}
             </div>
 
             <div className='flex items-end'>
