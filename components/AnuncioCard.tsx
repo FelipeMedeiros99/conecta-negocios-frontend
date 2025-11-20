@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 interface Imagem {
   url: string
 }
@@ -42,9 +44,9 @@ export default function AnuncioCard ({anuncio} : {anuncio: Anuncio}){
             {formattedPrice}
           </span>
           <div className="space-x-2">
-            <button className="px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition duration-150 shadow-md">
+            <Link href={`/editar-anuncio/${anuncio.id}`} className="px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition duration-150 shadow-md">
               Editar
-            </button>
+            </Link>
             <button className="px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition duration-150">
               Excluir
             </button>
