@@ -66,6 +66,7 @@ export default function Navbar() {
             <div className="hidden md:ml-8 md:flex md:space-x-4">
               {rotas.map((rota) => (
                 <a
+                  key={rota.path}
                   href={rota.path}
                   className={`text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors ${rota.path === "/login" ? "text-red-600" : "text-gray-600"}`}
                 >
@@ -101,6 +102,7 @@ export default function Navbar() {
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {rotas.map((rota) => (
               <a
+                key={rota.path}
                 href={rota.path}
                 className={`block px-3 py-2 rounded-md text-base font-medium hover:text-indigo-600 hover:bg-gray-50 ${rota.path === "/login" ? "text-red-600" : "text-gray-600"}`}
               >

@@ -65,7 +65,7 @@ export default function MeusAnunciosPage() {
 
         <div className="space-y-6">
           {anuncios.map((anuncio) => (
-            <AnuncioCard key={anuncio.id} anuncio={anuncio} />
+            <AnuncioCard key={anuncio.id} anuncio={anuncio} setAnuncios={setAnuncios}/>
           ))}
         </div>
         
